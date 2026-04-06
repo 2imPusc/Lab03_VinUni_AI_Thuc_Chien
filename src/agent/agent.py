@@ -1,5 +1,6 @@
 import os
 import re
+from datetime import datetime
 from typing import List, Dict, Any, Optional, Callable
 from dotenv import load_dotenv
 from src.core.llm_provider import LLMProvider
@@ -15,9 +16,7 @@ class ReActAgent:
     """
 
     def __init__(
-        
         self, llm: LLMProvider, tools: List[Dict[str, Any]], max_steps: int = 7
-    
     ):
         self.llm = llm
         self.tools = tools
@@ -26,11 +25,14 @@ class ReActAgent:
         self.tool_executor: Optional[Callable] = None  # set externally from tools.py
 
     def get_system_prompt(self) -> str:
+        current_date = datetime.now().strftime("%A, %d/%m/%Y")
         tool_descriptions = "\n".join(
             [f"- {t['name']}: {t['description']}" for t in self.tools]
         )
         return f"""You are TravelWise, an expert Vietnamese travel assistant.
                 You help users plan trips with real-time data by using tools.
+
+                Current date: {current_date}
 
                 Available tools:
                 {tool_descriptions}
@@ -59,9 +61,7 @@ class ReActAgent:
 
     def run(self, user_input: str) -> str:
         logger.log_event(
-            
             "AGENT_START", {"input": user_input, "model": self.llm.model_name}
-        
         )
 
         # Build the initial prompt with conversation history
@@ -74,10 +74,8 @@ class ReActAgent:
 
             # Generate LLM response — stop before "Observation:" to prevent hallucinated loops (Bug fix)
             result = self.llm.generate(
-                
                 current_prompt,
-                system_prompt=self.get_system_prompt()
-            ,
+                system_prompt=self.get_system_prompt(),
                 stop=["\nObservation:"],
             )
             content = result["content"]
@@ -95,22 +93,6 @@ class ReActAgent:
             print(f"  STEP {steps + 1}  ({latency}ms)")
             print(f"{'─'*50}")
 
-            logger.log_event(
-                "AGENT_STEP",
-                {
-                    "step": steps + 1,
-                    "raw_output": content[:500],  # truncate for log
-                    "latency_ms": result.get("latency_ms", 0),
-                },
-            )
-            logger.log_event(
-                "AGENT_STEP",
-                {
-                    "step": steps + 1,
-                    "raw_output": content[:500],  # truncate for log
-                    "latency_ms": result.get("latency_ms", 0),
-                },
-            )
             logger.log_event("AGENT_STEP", {
                 "step": steps + 1,
                 "raw_output": content[:500],  # truncate for log
@@ -133,7 +115,7 @@ class ReActAgent:
             action_match = re.search(r"Action:\s*(\w+)\[([^\]]*)\]", content)
             if action_match:
                 tool_name = action_match.group(1)
-                tool_args = action_match.group(2).strip().strip('"\'').strip().strip('"\'')
+                tool_args = action_match.group(2).strip().strip('"\'')
 
                 # Print thought if present
                 thought_match = re.search(r"Thought:\s*(.*?)(?=Action:)", content, re.DOTALL)
@@ -159,7 +141,7 @@ class ReActAgent:
 
                 # Append everything up to Action, then add Observation
                 # Only keep up to the Action line from LLM output
-                action_end = content[:  action_match.end()]
+                action_end = content[:action_match.end()]
                 prompt_parts.append(action_end + f"\nObservation: {observation}\n\n")
             else:
                 # No Action and no Final Answer — LLM might be confused
@@ -173,7 +155,6 @@ class ReActAgent:
                 # Nudge the agent to follow the format
                 prompt_parts.append(
                     content
-                   
                     + "\n\nYou must either use Action: tool_name[argument] or provide Final Answer:.\n\n"
                 )
 
@@ -185,15 +166,11 @@ class ReActAgent:
             final_answer = "Xin lỗi, tôi không thể hoàn thành yêu cầu trong số bước cho phép. Vui lòng thử lại với câu hỏi cụ thể hơn."
 
         logger.log_event(
-            
             "AGENT_END", {"steps": steps, "has_answer": final_answer is not None}
-        
         )
 
         self.history.append(
-            
             {"input": user_input, "output": final_answer, "steps": steps}
-        
         )
         return final_answer
 
@@ -202,28 +179,6 @@ class ReActAgent:
         if self.tool_executor:
             return self.tool_executor(tool_name, args)
         return f"Error: No tool executor configured. Cannot run '{tool_name}'."
-
-
-def main():
-    load_dotenv()
-
-    model_name = os.getenv("DEFAULT_MODEL", "gpt-4o")
-    api_key = os.getenv("OPENAI_API_KEY")
-
-    if not api_key:
-        raise ValueError("OPENAI_API_KEY is not set. Please configure it in your environment or .env file.")
-
-    react_agent = ReActAgent(
-        llm=OpenAIProvider(model_name=model_name, api_key=api_key),
-        tools=TOOLS,
-    )
-
-    react_agent.run(
-        "Tôi muốn đi du lịch Đà Nẵng vào cuối tuần này. Hãy giúp tôi lên kế hoạch chi tiết, bao gồm dự báo thời tiết, gợi ý khách sạn, và những địa điểm ăn uống nổi tiếng. Tôi cũng muốn biết tổng chi phí ước tính cho chuyến đi này."
-    )
-
-
-main()
 
 
 def main():
