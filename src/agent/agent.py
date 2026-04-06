@@ -71,10 +71,15 @@ class ReActAgent:
                 latency_ms=result.get("latency_ms", 0),
             )
 
+            latency = result.get("latency_ms", 0)
+            print(f"\n{'─'*50}")
+            print(f"  STEP {steps + 1}  ({latency}ms)")
+            print(f"{'─'*50}")
+
             logger.log_event("AGENT_STEP", {
                 "step": steps + 1,
                 "raw_output": content[:500],  # truncate for log
-                "latency_ms": result.get("latency_ms", 0),
+                "latency_ms": latency,
             })
 
             # Check for Final Answer
@@ -82,6 +87,11 @@ class ReActAgent:
             if final_match:
                 final_answer = final_match.group(1).strip()
                 prompt_parts.append(content)
+                # Print thought before final answer if present
+                thought_match = re.search(r"Thought:\s*(.*?)(?=Final Answer:)", content, re.DOTALL)
+                if thought_match:
+                    print(f"  Thought: {thought_match.group(1).strip()}")
+                print(f"  >> Final Answer found")
                 break
 
             # Parse Action: tool_name[argument]
@@ -90,10 +100,22 @@ class ReActAgent:
                 tool_name = action_match.group(1)
                 tool_args = action_match.group(2)
 
+                # Print thought if present
+                thought_match = re.search(r"Thought:\s*(.*?)(?=Action:)", content, re.DOTALL)
+                if thought_match:
+                    print(f"  Thought: {thought_match.group(1).strip()}")
+
+                print(f"\n  >> Calling tool: {tool_name}")
+                print(f"     Args: {tool_args}")
+
                 logger.log_event("TOOL_CALL", {"tool": tool_name, "args": tool_args})
 
                 # Execute tool
                 observation = self._execute_tool(tool_name, tool_args)
+
+                print(f"\n  << Tool result ({tool_name}):")
+                for line in observation.splitlines():
+                    print(f"     {line}")
 
                 logger.log_event("TOOL_RESULT", {
                     "tool": tool_name,
@@ -106,6 +128,8 @@ class ReActAgent:
                 prompt_parts.append(action_end + f"\nObservation: {observation}\n\n")
             else:
                 # No Action and no Final Answer — LLM might be confused
+                print(f"  !! Parse error: No Action or Final Answer found")
+                print(f"     Output preview: {content[:200]}")
                 logger.log_event("PARSE_ERROR", {
                     "step": steps + 1,
                     "reason": "No Action or Final Answer found",
