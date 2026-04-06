@@ -68,9 +68,11 @@ class ReActAgent:
         while steps < self.max_steps:
             current_prompt = "".join(prompt_parts)
 
-            # Generate LLM response
+            # Generate LLM response — stop before "Observation:" to prevent hallucinated loops (Bug fix)
             result = self.llm.generate(
-                current_prompt, system_prompt=self.get_system_prompt()
+                current_prompt,
+                system_prompt=self.get_system_prompt(),
+                stop=["\nObservation:"],
             )
             content = result["content"]
 
