@@ -117,7 +117,7 @@ class ReActAgent:
             action_match = re.search(r"Action:\s*(\w+)\[([^\]]*)\]", content)
             if action_match:
                 tool_name = action_match.group(1)
-                tool_args = action_match.group(2)
+                tool_args = action_match.group(2).strip().strip('"\'')
 
                 # Print thought if present
                 thought_match = re.search(r"Thought:\s*(.*?)(?=Action:)", content, re.DOTALL)
