@@ -8,7 +8,7 @@
 
 ## I. Technical Contribution (15 Points)
 
-*Describe your specific contribution to the codebase (e.g., implemented a specific tool, fixed the parser, etc.).*
+_Describe your specific contribution to the codebase (e.g., implemented a specific tool, fixed the parser, etc.)._
 
 - **Modules Implementated**: [e.g., `src/tools/search_tool.py`]
 - **Code Highlights**: [Copy snippets or link file lines]
@@ -18,7 +18,7 @@
 
 ## II. Debugging Case Study (10 Points)
 
-*Analyze a specific failure event you encountered during the lab using the logging system.*
+_Analyze a specific failure event you encountered during the lab using the logging system._
 
 - **Problem Description**: [e.g., Agent caught in an infinite loop with `Action: search(None)`]
 - **Log Source**: [Link or snippet from `logs/YYYY-MM-DD.log`]
@@ -29,17 +29,17 @@
 
 ## III. Personal Insights: Chatbot vs ReAct (10 Points)
 
-*Reflect on the reasoning capability difference.*
+_Reflect on the reasoning capability difference._
 
 1.  **Reasoning**: How did the `Thought` block help the agent compared to a direct Chatbot answer?
-2.  **Reliability**: In which cases did the Agent actually perform *worse* than the Chatbot?
+2.  **Reliability**: In which cases did the Agent actually perform _worse_ than the Chatbot?
 3.  **Observation**: How did the environment feedback (observations) influence the next steps?
 
 ---
 
 ## IV. Future Improvements (5 Points)
 
-*How would you scale this for a production-level AI agent system?*
+_How would you scale this for a production-level AI agent system?_
 
 - **Scalability**: [e.g., Use an asynchronous queue for tool calls]
 - **Safety**: [e.g., Implement a 'Supervisor' LLM to audit the agent's actions]
