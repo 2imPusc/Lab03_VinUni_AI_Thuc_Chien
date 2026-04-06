@@ -1,8 +1,8 @@
 # Group Report: Lab 3 - Production-Grade Agentic System
 
-- **Team Name**: [Name]
-- **Team Members**: [Member 1, Member 2, ...]
-- **Deployment Date**: [YYYY-MM-DD]
+- **Team Name**: C401 - C5
+- **Team Members**: Nguyễn Minh Hiếu, Hồ Sĩ Minh Hà, Nguyễn Khánh Nam, Đỗ Minh Phúc, Lê Tú Nam, Lê Hữu Hưng
+- **Deployment Date**: 2026-04-06
 
 ---
 
