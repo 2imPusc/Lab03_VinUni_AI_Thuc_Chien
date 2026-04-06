@@ -51,6 +51,8 @@ class ReActAgent:
                 - Do NOT make up information. Only use data from tool observations.
                 - If a search returns no useful result, try a different query.
                 - Answer in Vietnamese.
+                - Whenever you are presented with a calculation, never do it yourself. Instead, generate the calculation formula using parentheses, numbers, and operators, and use the calculator tool to compute the result.
+
                 """
 
     def run(self, user_input: str) -> str:
